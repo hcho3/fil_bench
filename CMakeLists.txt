@@ -12,6 +12,12 @@ FetchContent_Declare(
     GIT_TAG v3.1
 )
 FetchContent_MakeAvailable(argparse)
+FetchContent_Declare(
+    nlohmann_json
+    URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz
+    URL_HASH SHA256=d6c65aca6b1ed68e7a182f4757257b107ae403032760ed6ef121c9d55e81757d
+)
+FetchContent_MakeAvailable(nlohmann_json)
 
 add_executable(tuner)
 target_sources(tuner
@@ -35,7 +41,13 @@ target_include_directories(tuner
     $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
     $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>
 )
-target_link_libraries(tuner PRIVATE cuml::cuml++ raft::raft treelite::treelite argparse)
+target_link_libraries(tuner
+    PRIVATE
+    cuml::cuml++
+    raft::raft
+    treelite::treelite
+    argparse::argparse
+    nlohmann_json::nlohmann_json)
 set_target_properties(tuner
     PROPERTIES
     POSITION_INDEPENDENT_CODE ON

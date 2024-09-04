@@ -1,7 +1,10 @@
 #include <ostream>
 
+#include <fil_bench/fwd_decl.hpp>
+
 #include <cuml/experimental/fil/tree_layout.hpp>
 #include <cuml/fil/fil.h>
+#include <nlohmann/json_fwd.hpp>
 
 #ifndef FIL_BENCH_LAUNCH_CONFIG_HPP_
 #define FIL_BENCH_LAUNCH_CONFIG_HPP_
@@ -19,6 +22,8 @@ struct launch_config_t {
 };
 
 std::ostream& operator<<(std::ostream& os, launch_config_t const& config);
+void to_json(nlohmann::ordered_json& js, launch_config_t const& config);
+void from_json(nlohmann::ordered_json const& js, launch_config_t& config);
 
 }  // namespace fil_bench
 

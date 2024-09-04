@@ -9,6 +9,7 @@
 #include <fil_bench/tuner.hpp>
 
 #include <argparse/argparse.hpp>
+#include <nlohmann/json.hpp>
 #include <raft/core/handle.hpp>
 #include <raft/core/serialize.hpp>
 #include <treelite/detail/file_utils.h>
@@ -44,16 +45,19 @@ int main(int argc, char* argv[]) {
   }
 
   auto outdir = validate_directory_path(outdir_str);
+  auto model_path = outdir / "model.tl";
+  auto data_path = outdir / "X.npy";
+  auto result_path = outdir / "tune_result.json";
 
   raft::handle_t handle = fil_bench::make_raft_handle();
   auto [X, y] = fil_bench::make_regression(handle);
   auto rf_model = fil_bench::fit_rf_regressor(handle, X.view(), y.view());
   {
-    std::ofstream ofs = treelite::detail::OpenFileForWriteAsStream(outdir / "model.tl");
+    std::ofstream ofs = treelite::detail::OpenFileForWriteAsStream(model_path);
     rf_model->SerializeToStream(ofs);
   }
   {
-    std::ofstream ofs = treelite::detail::OpenFileForWriteAsStream(outdir / "X.npy");
+    std::ofstream ofs = treelite::detail::OpenFileForWriteAsStream(data_path);
     raft::serialize_mdspan(handle, ofs, X.view());
     handle.sync_stream();
     handle.sync_stream_pool();
@@ -63,6 +67,14 @@ int main(int argc, char* argv[]) {
   std::cout << "Best configuration for old FIL: " << best_config_old_fil << std::endl;
   auto best_config_new_fil = fil_bench::optimize_new_fil(handle, rf_model.get(), X.view());
   std::cout << "Best configuration for new FIL: " << best_config_new_fil << std::endl;
+
+  {
+    std::ofstream ofs = treelite::detail::OpenFileForWriteAsStream(result_path);
+    ofs << nlohmann::ordered_json{{"old_fil", best_config_old_fil},
+        {"new_fil", best_config_new_fil}, {"model", model_path}, {"data", data_path}}
+               .dump(4)
+        << std::endl;
+  }
 
   return 0;
 }
