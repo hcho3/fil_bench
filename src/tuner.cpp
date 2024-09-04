@@ -1,3 +1,4 @@
+#include <cstdint>
 #include <limits>
 #include <vector>
 
@@ -9,16 +10,10 @@
 #include <cuml/fil/fil.h>
 #include <treelite/tree.h>
 
-namespace {
-
-constexpr int predict_repetitions = 10;
-
-}  // anonymous namespace
-
 namespace fil_bench {
 
 std::pair<launch_config_t, std::int64_t> optimize_old_fil(
-    raft::handle_t& handle, treelite::Model* tl_model, Device2DArrayView X) {
+    raft::handle_t& handle, treelite::Model* tl_model, Device2DArrayView X, std::uint32_t n_reps) {
   launch_config_t best_config = {
       .layout = ML::experimental::fil::tree_layout::breadth_first,
   };
@@ -57,7 +52,7 @@ std::pair<launch_config_t, std::int64_t> optimize_old_fil(
         forest = std::get<ML::fil::forest_t<float>>(forest_variant);
 
         auto tstart = std::chrono::high_resolution_clock::now();
-        for (int i = 0; i < predict_repetitions; i++) {
+        for (std::uint32_t i = 0; i < n_reps; i++) {
           ML::fil::predict(
               handle, forest, ypred.data_handle(), X.data_handle(), X.extent(0), false);
         }
@@ -80,7 +75,7 @@ std::pair<launch_config_t, std::int64_t> optimize_old_fil(
 }
 
 std::pair<launch_config_t, std::int64_t> optimize_new_fil(
-    raft::handle_t& handle, treelite::Model* tl_model, Device2DArrayView X) {
+    raft::handle_t& handle, treelite::Model* tl_model, Device2DArrayView X, std::uint32_t n_reps) {
   launch_config_t best_config
       = {.algo_type = ML::fil::algo_t::NAIVE, .storage_type = ML::fil::storage_type_t::DENSE};
   auto min_time = std::numeric_limits<std::int64_t>::max();
@@ -99,7 +94,7 @@ std::pair<launch_config_t, std::int64_t> optimize_new_fil(
 
     for (auto chunk_size = 1; chunk_size <= 32; chunk_size *= 2) {
       auto tstart = std::chrono::high_resolution_clock::now();
-      for (int i = 0; i < predict_repetitions; i++) {
+      for (std::uint32_t i = 0; i < n_reps; i++) {
         filex_model.predict(handle, ypred.data_handle(), X.data_handle(), X.extent(0),
             raft_proto::device_type::gpu, raft_proto::device_type::gpu,
             ML::experimental::fil::infer_kind::default_kind, chunk_size);
