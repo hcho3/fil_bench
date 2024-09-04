@@ -17,13 +17,17 @@ add_executable(tuner)
 target_sources(tuner
     PRIVATE
     include/fil_bench/array_types.hpp
+    include/fil_bench/constants.hpp
     include/fil_bench/datagen.hpp
+    include/fil_bench/fwd_decl.hpp
     include/fil_bench/launch_config.hpp
+    include/fil_bench/raft_handle.hpp
     include/fil_bench/tuner.hpp
     src/datagen.cu
     src/launch_config.cpp
-    src/tuner.cpp
     src/main.cpp
+    src/raft_handle.cpp
+    src/tuner.cpp
 )
 target_include_directories(tuner
     PRIVATE

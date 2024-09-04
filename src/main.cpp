@@ -1,7 +1,9 @@
+#include <filesystem>
 #include <fstream>
 
 #include <fil_bench/constants.hpp>
 #include <fil_bench/datagen.hpp>
+#include <fil_bench/raft_handle.hpp>
 #include <fil_bench/tuner.hpp>
 
 #include <argparse/argparse.hpp>
@@ -10,8 +12,6 @@
 #include <treelite/detail/file_utils.h>
 #include <treelite/tree.h>
 
-#include <rmm/cuda_stream_pool.hpp>
-
 namespace {
 
 constexpr int predict_repetitions = 10;
@@ -19,8 +19,7 @@ constexpr int predict_repetitions = 10;
 }  // anonymous namespace
 
 int main() {
-  auto stream_pool = std::make_shared<rmm::cuda_stream_pool>(fil_bench::num_streams);
-  raft::handle_t handle{rmm::cuda_stream_per_thread, stream_pool};
+  raft::handle_t handle = fil_bench::make_raft_handle();
   auto [X, y] = fil_bench::make_regression(handle);
   auto rf_model = fil_bench::fit_rf_regressor(handle, X.view(), y.view());
   {

@@ -6,18 +6,7 @@
 
 #include <fil_bench/array_types.hpp>
 #include <fil_bench/constants.hpp>
-
-namespace raft {
-
-class handle_t;
-
-}  // namespace raft
-
-namespace treelite {
-
-class Model;
-
-}  // namespace treelite
+#include <fil_bench/fwd_decl.hpp>
 
 namespace fil_bench {
 
