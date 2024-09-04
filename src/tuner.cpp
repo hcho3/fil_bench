@@ -11,7 +11,7 @@
 
 namespace {
 
-constexpr int predict_repetitions = 100;
+constexpr int predict_repetitions = 10;
 
 }  // anonymous namespace
 
@@ -23,7 +23,7 @@ launch_config_t optimize_old_fil(
       .layout = ML::experimental::fil::tree_layout::breadth_first,
   };
   auto min_time = std::numeric_limits<std::int64_t>::max();
-  auto ypred = raft::make_device_vector<float>(handle, nrows);
+  auto ypred = raft::make_device_vector<float>(handle, X.extent(0));
 
   ML::fil::treelite_params_t tl_params = {.algo = ML::fil::algo_t::NAIVE,
       .output_class = false,
@@ -58,7 +58,8 @@ launch_config_t optimize_old_fil(
 
         auto tstart = std::chrono::high_resolution_clock::now();
         for (int i = 0; i < predict_repetitions; i++) {
-          ML::fil::predict(handle, forest, ypred.data_handle(), X.data_handle(), nrows, false);
+          ML::fil::predict(
+              handle, forest, ypred.data_handle(), X.data_handle(), X.extent(0), false);
         }
         handle.sync_stream();
         handle.sync_stream_pool();
@@ -83,7 +84,7 @@ launch_config_t optimize_new_fil(
   launch_config_t best_config
       = {.algo_type = ML::fil::algo_t::NAIVE, .storage_type = ML::fil::storage_type_t::DENSE};
   auto min_time = std::numeric_limits<std::int64_t>::max();
-  auto ypred = raft::make_device_vector<float>(handle, nrows);
+  auto ypred = raft::make_device_vector<float>(handle, X.extent(0));
 
   auto allowed_layouts = std::vector<ML::experimental::fil::tree_layout>{
       ML::experimental::fil::tree_layout::breadth_first,
@@ -99,7 +100,7 @@ launch_config_t optimize_new_fil(
     for (auto chunk_size = 1; chunk_size <= 32; chunk_size *= 2) {
       auto tstart = std::chrono::high_resolution_clock::now();
       for (int i = 0; i < predict_repetitions; i++) {
-        filex_model.predict(handle, ypred.data_handle(), X.data_handle(), nrows,
+        filex_model.predict(handle, ypred.data_handle(), X.data_handle(), X.extent(0),
             raft_proto::device_type::gpu, raft_proto::device_type::gpu,
             ML::experimental::fil::infer_kind::default_kind, chunk_size);
       }

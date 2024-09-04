@@ -3,8 +3,6 @@
 
 namespace fil_bench {
 
-constexpr int nrows = 1000000;
-constexpr int ncols = 20;
 constexpr int num_streams = 16;
 
 }  // namespace fil_bench
