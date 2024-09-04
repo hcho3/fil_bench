@@ -1,7 +1,7 @@
-#include <cstdint>
 #include <limits>
 #include <vector>
 
+#include <fil_bench/constants.hpp>
 #include <fil_bench/launch_config.hpp>
 #include <fil_bench/tuner.hpp>
 
@@ -10,9 +10,6 @@
 #include <treelite/tree.h>
 
 namespace {
-
-constexpr std::uint64_t nrows = 1000000;
-constexpr std::uint64_t ncols = 20;
 
 constexpr int predict_repetitions = 100;
 
@@ -87,15 +84,6 @@ launch_config_t optimize_new_fil(
       = {.algo_type = ML::fil::algo_t::NAIVE, .storage_type = ML::fil::storage_type_t::DENSE};
   auto min_time = std::numeric_limits<std::int64_t>::max();
   auto ypred = raft::make_device_vector<float>(handle, nrows);
-
-  ML::fil::treelite_params_t tl_params = {.algo = ML::fil::algo_t::NAIVE,
-      .output_class = false,
-      .threshold = 1.f,
-      .storage_type = ML::fil::storage_type_t::DENSE,
-      .blocks_per_sm = 8,
-      .threads_per_tree = 1,
-      .n_items = 0,
-      .pforest_shape_str = nullptr};
 
   auto allowed_layouts = std::vector<ML::experimental::fil::tree_layout>{
       ML::experimental::fil::tree_layout::breadth_first,

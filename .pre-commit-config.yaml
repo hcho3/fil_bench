@@ -1,0 +1,27 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.5.0
+  hooks:
+  - id: trailing-whitespace
+  - id: end-of-file-fixer
+  - id: check-yaml
+  - id: check-added-large-files
+    args: ["--maxkb=4000"]
+- repo: https://github.com/pocc/pre-commit-hooks
+  rev: v1.3.5
+  hooks:
+    - id: clang-format
+      args: ["-i", "--style=file:.clang-format"]
+      language: python
+      additional_dependencies: [clang-format>=15.0]
+      types_or: [c, c++]
+    - id: cpplint
+      language: python
+      args: [
+        "--linelength=100", "--recursive",
+        "--filter=-build/c++11,-build/include,-build/namespaces_literals,-runtime/references,-build/include_order,+build/include_what_you_use,-legal/copyright",
+        "--root=include"]
+      additional_dependencies: [cpplint]
+      types_or: [c++]

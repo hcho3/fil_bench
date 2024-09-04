@@ -1,4 +1,3 @@
-#include <cstdint>
 #include <ostream>
 
 #include <cuml/experimental/fil/tree_layout.hpp>
@@ -11,7 +10,7 @@ namespace fil_bench {
 
 struct launch_config_t {
   // Configuration common to old and new FIL
-  std::uint32_t chunk_size{1};
+  int chunk_size{1};
   // Configuration for old FIL only
   ML::fil::algo_t algo_type{ML::fil::algo_t::NAIVE};
   ML::fil::storage_type_t storage_type{ML::fil::storage_type_t::DENSE};
