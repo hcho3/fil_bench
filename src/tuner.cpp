@@ -17,7 +17,7 @@ constexpr int predict_repetitions = 10;
 
 namespace fil_bench {
 
-launch_config_t optimize_old_fil(
+std::pair<launch_config_t, std::int64_t> optimize_old_fil(
     raft::handle_t& handle, treelite::Model* tl_model, Device2DArrayView X) {
   launch_config_t best_config = {
       .layout = ML::experimental::fil::tree_layout::breadth_first,
@@ -76,10 +76,10 @@ launch_config_t optimize_old_fil(
     }
   }
 
-  return best_config;
+  return {best_config, min_time};
 }
 
-launch_config_t optimize_new_fil(
+std::pair<launch_config_t, std::int64_t> optimize_new_fil(
     raft::handle_t& handle, treelite::Model* tl_model, Device2DArrayView X) {
   launch_config_t best_config
       = {.algo_type = ML::fil::algo_t::NAIVE, .storage_type = ML::fil::storage_type_t::DENSE};
@@ -117,7 +117,7 @@ launch_config_t optimize_new_fil(
     }
   }
 
-  return best_config;
+  return {best_config, min_time};
 }
 
 }  // namespace fil_bench

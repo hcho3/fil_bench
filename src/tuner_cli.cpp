@@ -86,10 +86,16 @@ int main(int argc, char* argv[]) {
   }
 
   std::cout << "Fitted a random forest. Tuning parameters for FIL..." << std::endl;
-  auto best_config_old_fil = fil_bench::optimize_old_fil(handle, rf_model.get(), X.view());
-  std::cout << "Best configuration for old FIL: " << best_config_old_fil << std::endl;
-  auto best_config_new_fil = fil_bench::optimize_new_fil(handle, rf_model.get(), X.view());
-  std::cout << "Best configuration for new FIL: " << best_config_new_fil << std::endl;
+  auto [best_config_old_fil, best_time_old_fil]
+      = fil_bench::optimize_old_fil(handle, rf_model.get(), X.view());
+  std::cout << "Best configuration for old FIL: " << best_config_old_fil
+            << ", time elapsed = " << (static_cast<double>(best_time_old_fil) / 1000000) << " ms"
+            << std::endl;
+  auto [best_config_new_fil, best_time_new_fil]
+      = fil_bench::optimize_new_fil(handle, rf_model.get(), X.view());
+  std::cout << "Best configuration for new FIL: " << best_config_new_fil
+            << ", time elapsed = " << (static_cast<double>(best_time_new_fil) / 1000000) << " ms"
+            << std::endl;
 
   {
     std::ofstream ofs = treelite::detail::OpenFileForWriteAsStream(result_path);
