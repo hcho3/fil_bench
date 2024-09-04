@@ -25,7 +25,7 @@ target_sources(tuner
     include/fil_bench/tuner.hpp
     src/datagen.cu
     src/launch_config.cpp
-    src/main.cpp
+    src/tuner_cli.cpp
     src/raft_handle.cpp
     src/tuner.cpp
 )
