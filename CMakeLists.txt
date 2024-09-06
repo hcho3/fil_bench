@@ -19,8 +19,8 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(nlohmann_json)
 
-add_executable(tuner)
-target_sources(tuner
+add_library(fil_bench OBJECT)
+target_sources(fil_bench
     PRIVATE
     include/fil_bench/array_types.hpp
     include/fil_bench/constants.hpp
@@ -31,26 +31,40 @@ target_sources(tuner
     include/fil_bench/tuner.hpp
     src/datagen.cu
     src/launch_config.cpp
-    src/tuner_cli.cpp
     src/raft_handle.cpp
     src/tuner.cpp
 )
-target_include_directories(tuner
-    PRIVATE
+target_include_directories(fil_bench
+    PUBLIC
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
     $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
     $<INSTALL_INTERFACE:$<INSTALL_PREFIX>/include>
 )
-target_link_libraries(tuner
+target_link_libraries(fil_bench
     PRIVATE
     cuml::cuml++
+    PUBLIC
     raft::raft
     treelite::treelite
-    argparse::argparse
     nlohmann_json::nlohmann_json)
-set_target_properties(tuner
-    PROPERTIES
-    POSITION_INDEPENDENT_CODE ON
-    CXX_STANDARD 17
-    CXX_STANDARD_REQUIRED ON
-)
+
+add_executable(tuner src/tuner_cli.cpp)
+target_link_libraries(tuner
+    PRIVATE
+    fil_bench
+    argparse::argparse)
+
+add_executable(runner src/runner_cli.cpp)
+target_link_libraries(runner
+    PRIVATE
+    fil_bench
+    argparse::argparse)
+
+foreach(target fil_bench tuner runner)
+    set_target_properties(${target}
+        PROPERTIES
+        POSITION_INDEPENDENT_CODE ON
+        CXX_STANDARD 17
+        CXX_STANDARD_REQUIRED ON
+    )
+endforeach()
