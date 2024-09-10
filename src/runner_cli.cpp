@@ -63,7 +63,7 @@ int main(int argc, char* argv[]) {
   auto tune_result_path = dir / "tune_result.json";
 
   std::cout << "dir = " << dir << ", n_reps = " << n_reps << std::boolalpha
-            << ", experimental_flag = " << experimental_flag;
+            << ", experimental_flag = " << experimental_flag << std::endl;
 
   raft::handle_t handle = fil_bench::make_raft_handle();
 
@@ -93,11 +93,18 @@ int main(int argc, char* argv[]) {
     handle.sync_stream_pool();
   }
 
+  std::int64_t time_elapsed;
   if (experimental_flag) {
-    fil_bench::run_new_fil(handle, launch_config_new_fil, rf_model.get(), X.view(), n_reps);
+    time_elapsed
+        = fil_bench::run_new_fil(handle, launch_config_new_fil, rf_model.get(), X.view(), n_reps);
+    std::cout << "Ran new FIL for " << n_reps << " times, ";
   } else {
-    fil_bench::run_old_fil(handle, launch_config_old_fil, rf_model.get(), X.view(), n_reps);
+    time_elapsed
+        = fil_bench::run_old_fil(handle, launch_config_old_fil, rf_model.get(), X.view(), n_reps);
+    std::cout << "Ran old FIL for " << n_reps << " times, ";
   }
+  std::cout << "time elapsed = " << (static_cast<double>(time_elapsed) / 1000000) << " ms"
+            << std::endl;
 
   return 0;
 }
