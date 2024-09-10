@@ -1,12 +1,34 @@
 #include <cstdint>
+#include <iostream>
 #include <string>
+
+#include <fil_bench/datagen.hpp>
+#include <fil_bench/launch_config.hpp>
+#include <fil_bench/raft_handle.hpp>
+#include <fil_bench/runner.hpp>
 
 #include <argparse/argparse.hpp>
 #include <nlohmann/json.hpp>
+#include <raft/core/handle.hpp>
+#include <raft/core/serialize.hpp>
+#include <treelite/detail/file_utils.h>
+#include <treelite/tree.h>
+
+namespace {
+
+std::filesystem::path validate_directory_path(std::string const& str) {
+  auto path = std::filesystem::weakly_canonical(std::filesystem::u8path(str));
+  TREELITE_CHECK(std::filesystem::exists(path)) << "Path " << path << " does not exist";
+  TREELITE_CHECK(std::filesystem::is_directory(path)) << "Path " << path << " must be a directory";
+  return path;
+}
+
+}  // anonymous namespace
 
 int main(int argc, char* argv[]) {
   std::string dir_str;
   std::uint32_t n_reps;
+  bool experimental_flag;
 
   argparse::ArgumentParser argparser("runner");
   argparser.add_argument("--dir")
@@ -21,12 +43,60 @@ int main(int argc, char* argv[]) {
       .help("Number of times to run each kernel configuration to measure its performance")
       .metavar("N_REPS")
       .store_into(n_reps);
+  argparser.add_argument("--experimental")
+      .default_value(false)
+      .implicit_value(true)
+      .help("Run experimental FIL instead of current FIL")
+      .store_into(experimental_flag);
+
   try {
     argparser.parse_args(argc, argv);
   } catch (std::runtime_error const& e) {
     std::cerr << e.what() << "\n" << std::endl;
     std::cerr << argparser.help().str() << std::endl;
     return -1;
+  }
+
+  auto dir = validate_directory_path(dir_str);
+  auto model_path = dir / "model.tl";
+  auto data_path = dir / "X.npy";
+  auto tune_result_path = dir / "tune_result.json";
+
+  std::cout << "dir = " << dir << ", n_reps = " << n_reps << std::boolalpha
+            << ", experimental_flag = " << experimental_flag;
+
+  raft::handle_t handle = fil_bench::make_raft_handle();
+
+  nlohmann::ordered_json tune_result_obj;
+  std::uint64_t n_rows, n_cols;
+  fil_bench::launch_config_t launch_config_old_fil, launch_config_new_fil;
+  {
+    std::ifstream ifs = treelite::detail::OpenFileForReadAsStream(tune_result_path);
+    tune_result_obj = nlohmann::ordered_json::parse(ifs);
+    tune_result_obj.at("metadata").at("n_rows").get_to(n_rows);
+    tune_result_obj.at("metadata").at("n_cols").get_to(n_cols);
+    tune_result_obj.at("old_fil").get_to(launch_config_old_fil);
+    tune_result_obj.at("new_fil").get_to(launch_config_new_fil);
+  }
+
+  std::unique_ptr<treelite::Model> rf_model;
+  {
+    std::ifstream ifs = treelite::detail::OpenFileForReadAsStream(model_path);
+    rf_model = treelite::Model::DeserializeFromStream(ifs);
+  }
+
+  auto X = fil_bench::make_empty(handle, n_rows, n_cols).first;
+  {
+    std::ifstream ifs = treelite::detail::OpenFileForReadAsStream(data_path);
+    raft::deserialize_mdspan(handle, ifs, X.view());
+    handle.sync_stream();
+    handle.sync_stream_pool();
+  }
+
+  if (experimental_flag) {
+    fil_bench::run_new_fil(handle, launch_config_new_fil, rf_model.get(), X.view(), n_reps);
+  } else {
+    fil_bench::run_old_fil(handle, launch_config_old_fil, rf_model.get(), X.view(), n_reps);
   }
 
   return 0;

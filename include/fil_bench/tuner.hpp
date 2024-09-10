@@ -1,6 +1,7 @@
 #ifndef FIL_BENCH_TUNER_HPP_
 #define FIL_BENCH_TUNER_HPP_
 
+#include <cstdint>
 #include <utility>
 
 #include <fil_bench/array_types.hpp>

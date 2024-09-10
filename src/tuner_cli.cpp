@@ -1,9 +1,11 @@
 #include <filesystem>
 #include <fstream>
+#include <iostream>
 #include <stdexcept>
 #include <string>
 
 #include <fil_bench/datagen.hpp>
+#include <fil_bench/launch_config.hpp>
 #include <fil_bench/raft_handle.hpp>
 #include <fil_bench/tuner.hpp>
 
@@ -14,12 +16,16 @@
 #include <treelite/detail/file_utils.h>
 #include <treelite/tree.h>
 
+namespace {
+
 std::filesystem::path validate_directory_path(std::string const& str) {
   auto path = std::filesystem::weakly_canonical(std::filesystem::u8path(str));
   TREELITE_CHECK(std::filesystem::exists(path)) << "Path " << path << " does not exist";
   TREELITE_CHECK(std::filesystem::is_directory(path)) << "Path " << path << " must be a directory";
   return path;
 }
+
+}  // anonymous namespace
 
 int main(int argc, char* argv[]) {
   std::string outdir_str;

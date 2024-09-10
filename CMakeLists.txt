@@ -28,11 +28,9 @@ target_sources(fil_bench
     include/fil_bench/fwd_decl.hpp
     include/fil_bench/launch_config.hpp
     include/fil_bench/raft_handle.hpp
-    include/fil_bench/tuner.hpp
     src/datagen.cu
     src/launch_config.cpp
     src/raft_handle.cpp
-    src/tuner.cpp
 )
 target_include_directories(fil_bench
     PUBLIC
@@ -47,14 +45,27 @@ target_link_libraries(fil_bench
     raft::raft
     treelite::treelite
     nlohmann_json::nlohmann_json)
+target_compile_definitions(fil_bench
+    PUBLIC
+    CUML_ENABLE_GPU=1)
 
-add_executable(tuner src/tuner_cli.cpp)
+add_executable(tuner)
+target_sources(tuner
+    PRIVATE
+    include/fil_bench/tuner.hpp
+    src/tuner_cli.cpp
+    src/tuner.cpp)
 target_link_libraries(tuner
     PRIVATE
     fil_bench
     argparse::argparse)
 
-add_executable(runner src/runner_cli.cpp)
+add_executable(runner)
+target_sources(runner
+    PRIVATE
+    include/fil_bench/runner.hpp
+    src/runner_cli.cpp
+    src/runner.cpp)
 target_link_libraries(runner
     PRIVATE
     fil_bench

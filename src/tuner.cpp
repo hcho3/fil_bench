@@ -1,13 +1,14 @@
+#include <chrono>
 #include <cstdint>
 #include <limits>
 #include <vector>
 
-#include <fil_bench/constants.hpp>
 #include <fil_bench/launch_config.hpp>
 #include <fil_bench/tuner.hpp>
 
 #include <cuml/experimental/fil/treelite_importer.hpp>
 #include <cuml/fil/fil.h>
+#include <raft/core/handle.hpp>
 #include <treelite/tree.h>
 
 namespace fil_bench {

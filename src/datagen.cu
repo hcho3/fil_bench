@@ -14,8 +14,7 @@ namespace fil_bench {
 
 std::pair<Device2DArray, Device1DArray> make_regression(const raft::handle_t& handle,
     std::uint64_t n_rows, std::uint64_t n_cols) {
-  Device2DArray X = raft::make_device_matrix<float>(handle, n_rows, n_cols);
-  auto y = raft::make_device_vector<float>(handle, n_rows);
+  auto [X, y] = make_empty(handle, n_rows, n_cols);
 
   raft::random::make_regression(handle,
       X.data_handle(),
@@ -35,6 +34,13 @@ std::pair<Device2DArray, Device1DArray> make_regression(const raft::handle_t& ha
   handle.sync_stream();
   handle.sync_stream_pool();
 
+  return {X, y};
+}
+
+std::pair<Device2DArray, Device1DArray> make_empty(
+    raft::handle_t const& handle, std::uint64_t n_rows, std::uint64_t n_cols) {
+  Device2DArray X = raft::make_device_matrix<float>(handle, n_rows, n_cols);
+  Device1DArray y = raft::make_device_vector<float>(handle, n_rows);
   return {X, y};
 }
 
