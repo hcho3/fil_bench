@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.28)
 project(fil_bench LANGUAGES C CXX)
 
-find_package(cuml 24.10 CONFIG REQUIRED)
-find_package(raft 24.10 CONFIG REQUIRED)
+find_package(cuml 24.12 CONFIG REQUIRED)
+find_package(raft 24.12 CONFIG REQUIRED)
 find_package(Treelite 4.3.0 CONFIG REQUIRED)
 
 include(FetchContent)
